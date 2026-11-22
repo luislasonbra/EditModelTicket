@@ -11,8 +11,10 @@
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-.app{display:grid;grid-template-columns:380px 1fr;min-height:100vh}
-aside{padding:14px;overflow:auto;border-right:1px solid var(--bd);max-height:100vh}
+.app{--sbw:380px;display:grid;grid-template-columns:var(--sbw) 6px 1fr;min-height:100vh}
+.rz{background:var(--bd);cursor:col-resize;touch-action:none;transition:background .15s}
+.rz:hover,.rz.drag,.rz:focus-visible{background:var(--ac);outline:0}
+aside{padding:14px;overflow:auto;max-height:100vh;min-width:0}
 main{padding:20px;display:flex;flex-direction:column;align-items:center;gap:12px;overflow:auto}
 h1{font-size:18px;margin:0 0 10px}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:12px}
@@ -40,9 +42,9 @@ button:hover{filter:brightness(.95)}
 .bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 #code{width:100%;max-width:480px;height:160px;display:none;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:8px;font:12px monospace}
 .hint{color:var(--mut);font-size:12px}
-.app.right{grid-template-columns:1fr 380px}
-.app.right aside{order:2;border-right:0;border-left:1px solid var(--bd)}
-@media (max-width:820px){.sidebtn{display:none}.app.right{grid-template-columns:1fr}.app.right aside{order:0;border-left:0}.app{grid-template-columns:1fr}aside{max-height:none;border-right:0;border-bottom:1px solid var(--bd)}}
+.app.right{grid-template-columns:1fr 6px var(--sbw)}
+.app.right aside{order:3}.app.right .rz{order:2}.app.right main{order:1}
+@media (max-width:820px){.sidebtn,.rz{display:none}.app,.app.right{grid-template-columns:1fr}.app.right aside{order:0}.app.right main{order:1}aside{max-height:none;border-bottom:1px solid var(--bd)}}
 
 select{flex:1;min-width:0;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:6px;padding:6px 8px;font:inherit}
 .row.w{flex-wrap:wrap}
@@ -65,7 +67,7 @@ body.pm #paper,body.pm .bar,body.pm #code{display:none!important}
 @media print{
   html,body{background:#fff;height:auto}
   #modal,#toast{display:none!important}
-  body.pm aside,body.pm .pbar,body.pm .prnote{display:none!important}
+  body.pm aside,body.pm .rz,body.pm .pbar,body.pm .prnote{display:none!important}
   body.pm .app{display:block;min-height:0}
   body.pm main{padding:0;display:block;overflow:visible}
   body.pm #printArea{display:block}
@@ -82,7 +84,7 @@ body.pm #paper,body.pm .bar,body.pm #code{display:none!important}
   <div class="row" style="justify-content:space-between"><h1 style="margin:0">🎟️ Editor de Ticket</h1><button id="sideBtn" class="sidebtn"></button></div>
   <div class="card"><h2>Perfil</h2>
     <div class="row"><select id="profSel"></select><button class="p" id="pSave">Guardar</button></div>
-    <div class="row w"><button id="pNew">Nuevo</button><button id="pDup">Duplicar</button><button id="pRen">Renombrar</button><button id="pDel">Eliminar</button><button id="pIO">JSON</button></div>
+    <div class="row w"><button id="pNew">Nuevo</button><button id="pDup">Duplicar</button><button id="pRen">Renombrar</button><button id="pDel">Eliminar</button><button id="pIO">JSON</button><button id="pTpl" title="Plantilla para perfiles nuevos">★ Plantilla</button></div>
     <div class="hint" id="pStat"></div>
   </div>
   <div class="card">
@@ -102,6 +104,7 @@ body.pm #paper,body.pm .bar,body.pm #code{display:none!important}
       <h2>Grupos de sorteos</h2>
       <div id="groupList"></div>
       <div class="row"><input type="text" id="newGroup" placeholder="Nuevo grupo (ej. New York)…"><button class="p" id="addGroup">+ Grupo</button></div>
+      <div class="row"><button id="restGroups" title="Vuelve a agregar los grupos predeterminados que hayas eliminado">↺ Restaurar grupos predeterminados</button></div>
       <div class="hint" id="grpHint"></div>
       <div class="hint" id="selInfo"></div>
     </div>
@@ -157,14 +160,18 @@ body.pm #paper,body.pm .bar,body.pm #code{display:none!important}
       <div class="row"><label>Tamaño</label><select id="pr_paper"></select></div>
       <div class="row" id="pr_customRow"><label>Ancho × alto (mm)</label><input type="number" id="pr_pw" min="30" max="1500" step="0.1"><input type="number" id="pr_ph" min="30" max="1500" step="0.1"></div>
       <div class="row"><label>Orientación</label><select id="pr_orient"><option value="v">Vertical</option><option value="h">Horizontal</option></select></div>
-      <div class="row"><label>Margen de hoja (mm)</label><input type="number" id="pr_margin" min="0" max="60" step="0.5"></div>
+      <div class="row"><label>Margen izquierdo/derecho (mm)</label><input type="number" id="pr_mx" min="0" max="100" step="0.5"></div>
+      <div class="row"><label>Margen arriba/abajo (mm)</label><input type="number" id="pr_my" min="0" max="100" step="0.5"></div>
+      <div class="hint">Los márgenes se miden sobre la hoja tal como se ve (en horizontal, "arriba/abajo" son los lados cortos).</div>
     </div>
     <div class="card">
       <h2>Tickets por hoja</h2>
       <div class="row"><label>Modo</label><select id="pr_mode"><option value="auto">Automático (según tamaño del ticket)</option><option value="man">Manual (columnas × filas)</option></select></div>
       <div class="row" id="pr_autoRow"><label>Ancho del ticket (mm)</label><input type="number" id="pr_tw" min="10" max="500" step="0.5"></div>
       <div class="row" id="pr_manRow"><label>Columnas × filas</label><input type="number" id="pr_cols" min="1" max="30" step="1"><input type="number" id="pr_rows" min="1" max="30" step="1"></div>
-      <div class="row"><label>Espacio entre tickets (mm)</label><input type="number" id="pr_gap" min="0" max="40" step="0.5"></div>
+      <div class="row"><label>Espacio entre columnas (mm)</label><input type="number" id="pr_gx" min="0" max="60" step="0.5"></div>
+      <div class="row"><label>Espacio entre filas (mm)</label><input type="number" id="pr_gy" min="0" max="60" step="0.5"></div>
+      <div class="row"><label>Posición en la hoja</label><select id="pr_align"><option value="top">Arriba</option><option value="center">Centrada</option></select></div>
       <div class="row"><label>Cantidad (0 = llenar la hoja)</label><input type="number" id="pr_qty" min="0" max="5000" step="1"></div>
       <div class="row"><label for="pr_cut">Líneas de corte</label><input type="checkbox" id="pr_cut"></div>
       <div class="hint" id="prInfo"></div>
@@ -173,6 +180,7 @@ body.pm #paper,body.pm .bar,body.pm #code{display:none!important}
     </div>
   </div>
 </aside>
+<div class="rz" id="rz" role="separator" aria-orientation="vertical" tabindex="0" title="Arrastra para cambiar el ancho (doble clic: restablecer)"></div>
 
 <main>
   <svg id="paper" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -193,13 +201,30 @@ body.pm #paper,body.pm .bar,body.pm #code{display:none!important}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const uid=()=>Math.random().toString(36).slice(2,8);
-/* ---------- Posición del panel (izquierda/derecha): se guarda aparte de los perfiles ---------- */
-(function(){
+/* ---------- Preferencias de interfaz (lado y ancho del panel, pestaña activa): se guardan aparte de los perfiles ---------- */
+const UI=Object.assign({side:'left',sbw:380,tab:'raffles'},(()=>{let o={};try{o=JSON.parse(localStorage.getItem('ticketUI')||'{}')}catch(e){}
+  if(!o.side){try{if(localStorage.getItem('ticketPanelSide')==='right')o.side='right'}catch(e){}}return o})());
+const saveUI=()=>{try{localStorage.setItem('ticketUI',JSON.stringify(UI))}catch(e){}};
+const SB_MIN=260,sbMax=()=>Math.max(SB_MIN,Math.min(720,window.innerWidth-320));
+const clampSb=w=>Math.round(Math.min(sbMax(),Math.max(SB_MIN,w)));
+function applyUI(){
   const app=document.querySelector('.app'),b=$('sideBtn');
-  let side='left';try{side=localStorage.getItem('ticketPanelSide')==='right'?'right':'left'}catch(e){}
-  const apply=()=>{app.classList.toggle('right',side==='right');b.textContent=side==='right'?'⬅ Izquierda':'Derecha ➡';b.title='Mover el panel de herramientas a la '+(side==='right'?'izquierda':'derecha')};
-  b.onclick=()=>{side=side==='right'?'left':'right';try{localStorage.setItem('ticketPanelSide',side)}catch(e){}apply()};
-  apply();
+  UI.side=UI.side==='right'?'right':'left';UI.sbw=clampSb(parseFloat(UI.sbw)||380);
+  app.classList.toggle('right',UI.side==='right');app.style.setProperty('--sbw',UI.sbw+'px');
+  b.textContent=UI.side==='right'?'⬅ Izquierda':'Derecha ➡';b.title='Mover el panel de herramientas a la '+(UI.side==='right'?'izquierda':'derecha');
+}
+(function(){
+  const rz=$('rz');let raf=0;
+  const redraw=()=>{if(document.body.classList.contains('pm')&&!raf)raf=requestAnimationFrame(()=>{raf=0;drawPrint()})};
+  $('sideBtn').onclick=()=>{UI.side=UI.side==='right'?'left':'right';saveUI();applyUI();redraw()};
+  rz.onpointerdown=e=>{rz.setPointerCapture(e.pointerId);rz.classList.add('drag');document.body.style.userSelect='none'};
+  rz.onpointermove=e=>{if(!rz.classList.contains('drag'))return;UI.sbw=clampSb(UI.side==='right'?window.innerWidth-e.clientX:e.clientX);applyUI();redraw()};
+  const end=()=>{if(!rz.classList.contains('drag'))return;rz.classList.remove('drag');document.body.style.userSelect='';saveUI()};
+  rz.onpointerup=end;rz.onpointercancel=end;
+  rz.ondblclick=()=>{UI.sbw=380;saveUI();applyUI();redraw()};
+  rz.onkeydown=e=>{const d=e.key==='ArrowLeft'?-20:e.key==='ArrowRight'?20:0;if(!d)return;e.preventDefault();UI.sbw=clampSb(UI.sbw+(UI.side==='right'?-d:d));saveUI();applyUI();redraw()};
+  window.addEventListener('resize',()=>{applyUI()});
+  applyUI();
 })();
 /* ===== GRUPOS PREDETERMINADOS: edita esta lista para agregar más (ver README.md) ===== */
 const DEFAULT_GROUPS=[
@@ -211,8 +236,20 @@ const DEFAULT_GROUPS=[
   {name:'Georgia',items:['GA. DAY','GA. NIGHT','GA. EVENING']}
 ];
 /* ================================================================================== */
-/* Permite eliminar grupos y sorteos. Por defecto false: no se puede eliminar ninguno (ver README.md) */
-const ALLOW_DELETE=false;
+/* Permisos de eliminación (ver README.md): */
+const ALLOW_DELETE_GROUPS=true;   // true: se pueden eliminar grupos (también los predeterminados; se pueden restaurar)
+const ALLOW_DELETE_ITEMS=false;   // false: no se pueden eliminar sorteos dentro de los grupos
+const PR_DEF={paper:'letter',pw:210,ph:297,orient:'v',mode:'auto',tw:80,cols:2,rows:3,mx:10,my:10,gx:4,gy:4,align:'top',qty:0,cut:true};
+let LEGACY_PR=null;try{LEGACY_PR=JSON.parse(localStorage.getItem('ticketPrintCfg')||'null')}catch(e){}
+function normPrint(p){
+  p=Object.assign({},PR_DEF,p||{});
+  if(p.mx===PR_DEF.mx&&p.my===PR_DEF.my&&p.margin!==undefined)p.mx=p.my=p.margin;
+  if(p.gx===PR_DEF.gx&&p.gy===PR_DEF.gy&&p.gap!==undefined)p.gx=p.gy=p.gap;
+  delete p.margin;delete p.gap;
+  ['pw','ph','tw','cols','rows','mx','my','gx','gy','qty'].forEach(k=>{p[k]=parseFloat(p[k]);if(isNaN(p[k])||p[k]<0)p[k]=PR_DEF[k]});
+  if(p.align!=='center')p.align='top';p.orient=p.orient==='h'?'h':'v';p.mode=p.mode==='man'?'man':'auto';p.cut=!!p.cut;
+  return p;
+}
 const mkG=(n,a,fixed,show=true)=>({id:uid(),name:n,open:true,show,fixed:!!fixed,items:a.map(x=>({id:uid(),name:x,on:true}))});
 const defGroups=()=>DEFAULT_GROUPS.map(d=>mkG(d.name,d.items,true));
 const mk=()=>({
@@ -221,22 +258,32 @@ const mk=()=>({
   rows:8,rowH:17,rfont:14,boxS:12,rpad:10,boxRight:true,
   bLeft:'APUESTA',bRight:'CANTIDAD',bLines:18,bLineH:21,bHead:28,bDiv:63,bFont:14,
   dLabel:'Fecha:',dFmt:'______ / _____ / ________',dH:31,dFont:20,
-  pW:327,pM:13,pG:6,pR:6,pS:1
+  pW:327,pM:13,pG:6,pR:6,pS:1,
+  dropped:[],
+  print:Object.assign({},PR_DEF)
 });
 function norm(c){const d=mk(),o=Object.assign(d,c);if(!c.groups)o.groups=(c.raffles&&c.raffles.length)?[mkG('General',c.raffles)]:mk().groups;delete o.raffles;
+  o.dropped=Array.isArray(c.dropped)?c.dropped.map(x=>String(x).trim().toLowerCase()):[];
+  o.print=normPrint(c.print||LEGACY_PR);
   const have=new Map(o.groups.map(g=>[g.name.trim().toLowerCase(),g]));
-  DEFAULT_GROUPS.forEach(d=>{const g=have.get(d.name.trim().toLowerCase());if(g){g.fixed=true;if(g.show===undefined)g.show=true}else o.groups.push(mkG(d.name,d.items,true,false))});
+  DEFAULT_GROUPS.forEach(d=>{const k=d.name.trim().toLowerCase(),g=have.get(k);if(g){g.fixed=true;if(g.show===undefined)g.show=true;o.dropped=o.dropped.filter(x=>x!==k)}else if(!o.dropped.includes(k))o.groups.push(mkG(d.name,d.items,true,false))});
   return o}
+/* Perfil vacío: sin grupos ni sorteos (los predeterminados quedan marcados como eliminados) */
+const mkBlank=()=>{const o=mk();o.groups=[];o.dropped=DEFAULT_GROUPS.map(d=>d.name.trim().toLowerCase());return o};
+/* Plantilla para perfiles nuevos: la guardada por el usuario o, si no hay, la predeterminada (mk) */
+function getTemplate(){try{const t=localStorage.getItem('ticketTemplate');if(t)return norm(JSON.parse(t))}catch(e){}return norm(mk())}
+const clone=o=>JSON.parse(JSON.stringify(o));
+const newCfg=kind=>kind==='blank'?norm(mkBlank()):clone(getTemplate());
 const NAMES={date:'Fecha',raffles:'Sorteos',bets:'Apuestas'};
 let P={profiles:{},current:null},S=mk();
-try{const t=JSON.parse(localStorage.getItem('ticketProfiles')||'{}');if(t.profiles)P.profiles=t.profiles}catch(e){}
+try{const t=JSON.parse(localStorage.getItem('ticketProfiles')||'{}');if(t.profiles)P.profiles=t.profiles;if(t.last)P.last=t.last}catch(e){}
 try{const o=localStorage.getItem('ticketCfg');if(o&&!Object.keys(P.profiles).length)P.profiles['Anterior']=JSON.parse(o)}catch(e){}
 Object.keys(P.profiles).forEach(n=>P.profiles[n]=norm(P.profiles[n]));
 
 function toast(t){const e=$('toast');e.textContent=t;e.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.opacity=0,2000)}
 function saveP(){
   if(P.current)P.profiles[P.current]=S;
-  try{localStorage.setItem('ticketProfiles',JSON.stringify({profiles:P.profiles}))}catch(e){}
+  try{if(P.current)P.last=P.current;localStorage.setItem('ticketProfiles',JSON.stringify({profiles:P.profiles,last:P.last||null}))}catch(e){}
   $('pStat').textContent=P.current?'✔ Guardado · '+new Date().toLocaleTimeString():'';
 }
 const selected=()=>{const seen=new Set(),out=[];S.groups.forEach(g=>g.show!==false&&g.items.forEach(i=>{const k=i.name.trim().toLowerCase();if(i.on&&k&&!seen.has(k)){seen.add(k);out.push(i.name)}}));return out};
@@ -322,11 +369,11 @@ function addItems(g,text){
   return ok;
 }
 function drawGroups(){
-  $('grpHint').textContent='👁️ muestra u oculta un grupo completo; ☑ marca sus sorteos. '+(ALLOW_DELETE?'Los grupos con 🔒 son predeterminados y no se eliminan. ':'Los grupos y sorteos no se pueden eliminar (🔒). ')+'Arrastra ⠿ para reordenar.';
+  $('grpHint').textContent='👁️ muestra u oculta un grupo completo; ☑ marca sus sorteos. '+(ALLOW_DELETE_GROUPS?'Puedes eliminar grupos con ✕ (los predeterminados se restauran con ↺). ':'Los grupos no se pueden eliminar (🔒). ')+(ALLOW_DELETE_ITEMS?'':'Los sorteos no se pueden eliminar. ')+'Los grupos predeterminados no se renombran. Arrastra ⠿ para reordenar.';
   const box=$('groupList');box.innerHTML='';
   S.groups.forEach(g=>{
     const el=document.createElement('div');el.className='grp'+(g.show===false?' off':'');
-    el.innerHTML=`<div class="item gh"><span class="h">⠿</span><button class="eye car">${g.open?'▾':'▸'}</button><input type="text" class="nm" value="${esc(g.name)}"${g.fixed?' readonly':''}><span class="hint cnt"></span><button class="eye all" title="Marcar todos">☑</button><button class="eye none" title="Desmarcar todos">☐</button><button class="eye vis" title="Mostrar/ocultar grupo en el ticket">${g.show===false?'🚫':'👁️'}</button>${(g.fixed||!ALLOW_DELETE)?`<span title="${g.fixed?'Grupo predeterminado: solo se muestra u oculta':'Eliminación deshabilitada'}" style="padding:0 6px">🔒</span>`:'<button class="x" title="Eliminar grupo">✕</button>'}</div><div class="gb"></div>`;
+    el.innerHTML=`<div class="item gh"><span class="h">⠿</span><button class="eye car">${g.open?'▾':'▸'}</button><input type="text" class="nm" value="${esc(g.name)}"${g.fixed?' readonly':''}><span class="hint cnt"></span><button class="eye all" title="Marcar todos">☑</button><button class="eye none" title="Desmarcar todos">☐</button><button class="eye vis" title="Mostrar/ocultar grupo en el ticket">${g.show===false?'🚫':'👁️'}</button>${ALLOW_DELETE_GROUPS?'<button class="x" title="Eliminar grupo">✕</button>':`<span title="Eliminación de grupos deshabilitada" style="padding:0 6px">🔒</span>`}</div><div class="gb"></div>`;
     const cnt=el.querySelector('.cnt'),upd=()=>cnt.textContent=g.items.filter(i=>i.on).length+'/'+g.items.length;
     upd();
     el.querySelector('.nm').oninput=e=>{g.name=e.target.value;saveP()};
@@ -334,18 +381,23 @@ function drawGroups(){
     el.querySelector('.all').onclick=()=>{g.items.forEach(i=>i.on=true);drawGroups();render()};
     el.querySelector('.none').onclick=()=>{g.items.forEach(i=>i.on=false);drawGroups();render()};
     el.querySelector('.vis').onclick=()=>{g.show=g.show===false;drawGroups();render()};
-    const xb=el.querySelector('.x');if(xb)xb.onclick=()=>{if(!ALLOW_DELETE||g.fixed)return;S.groups=S.groups.filter(x=>x!==g);drawGroups();render()};
+    const xb=el.querySelector('.x');if(xb)xb.onclick=()=>{
+      if(!ALLOW_DELETE_GROUPS)return;
+      openModal(`<h1>Eliminar grupo</h1><p>¿Eliminar "${esc(g.name)}" y sus ${g.items.length} sorteo(s)?${g.fixed?' Es un grupo predeterminado: podrás recuperarlo con ↺ Restaurar.':''}</p><div class="row"><button id="mCancel">Cancelar</button><button class="p" id="mOk">Eliminar</button></div>`);
+      $('mCancel').onclick=closeModal;
+      $('mOk').onclick=()=>{S.groups=S.groups.filter(x=>x!==g);if(g.fixed){const k=g.name.trim().toLowerCase();if(!S.dropped.includes(k))S.dropped.push(k)}closeModal();drawGroups();render()};
+    };
     const gb=el.querySelector('.gb');
     if(g.open){
       const il=document.createElement('div');
       g.items.forEach(it=>{
         const d=document.createElement('div');d.className='item';
-        d.innerHTML=`<span class="h">⠿</span><input type="checkbox" ${it.on?'checked':''} title="Mostrar en el ticket"><input type="text" class="nm" value="${esc(it.name)}">${ALLOW_DELETE?'<button class="x" title="Quitar">✕</button>':''}`;
+        d.innerHTML=`<span class="h">⠿</span><input type="checkbox" ${it.on?'checked':''} title="Mostrar en el ticket"><input type="text" class="nm" value="${esc(it.name)}">${ALLOW_DELETE_ITEMS?'<button class="x" title="Quitar">✕</button>':''}`;
         const [cb,tx]=d.querySelectorAll('input'),dup=v=>g.items.some(o=>o!==it&&o.name.trim().toLowerCase()===v.trim().toLowerCase());
         cb.onchange=()=>{it.on=cb.checked;upd();render()};
         tx.oninput=()=>{if(dup(tx.value)){tx.classList.add('bad')}else{tx.classList.remove('bad');it.name=tx.value;render()}};
         tx.onblur=()=>{if(tx.classList.contains('bad')){toast('Nombre repetido en el grupo');tx.value=it.name;tx.classList.remove('bad')}};
-        const xi=d.querySelector('.x');if(xi)xi.onclick=()=>{if(!ALLOW_DELETE)return;g.items=g.items.filter(o=>o!==it);drawGroups();render()};
+        const xi=d.querySelector('.x');if(xi)xi.onclick=()=>{if(!ALLOW_DELETE_ITEMS)return;g.items=g.items.filter(o=>o!==it);drawGroups();render()};
         il.appendChild(d);
       });
       gb.appendChild(il);
@@ -366,6 +418,7 @@ function addGroup(){
   S.groups.push({id:uid(),name:v,open:true,show:true,fixed:false,items:[]});$('newGroup').value='';drawGroups();render();
 }
 $('addGroup').onclick=addGroup;
+$('restGroups').onclick=()=>{let n=0;DEFAULT_GROUPS.forEach(d=>{const k=d.name.trim().toLowerCase();if(!S.groups.some(g=>g.name.trim().toLowerCase()===k)){S.groups.push(mkG(d.name,d.items,true,false));n++}});S.dropped=[];drawGroups();render();toast(n?n+' grupo(s) restaurado(s), ocultos (actívalos con 👁️)':'No hay grupos predeterminados por restaurar')};
 $('newGroup').onkeydown=e=>{if(e.key==='Enter')addGroup()};
 
 const BIND=['rows','rowH','rfont','boxS','rpad','boxRight','bLeft','bRight','bLines','bLineH','bHead','bDiv','bFont','dLabel','dFmt','dH','dFont','pW','pM','pG','pR','pS'];
@@ -382,31 +435,35 @@ function bind(){
     };
   });
 }
-document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
-  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
-  document.querySelectorAll('.sec').forEach(s=>s.classList.toggle('on',s.id==='s-'+b.dataset.t));
-  document.body.classList.toggle('pm',b.dataset.t==='print');
-  if(b.dataset.t==='print')drawPrint();
-});
-$('reset').onclick=()=>{S=mk();bind();drawSections();drawGroups();render();toast('Diseño restablecido')};
+function setTab(t,save=true){
+  const bs=[...document.querySelectorAll('#tabs button')];if(!bs.some(b=>b.dataset.t===t))t='raffles';
+  bs.forEach(x=>x.classList.toggle('on',x.dataset.t===t));
+  document.querySelectorAll('.sec').forEach(x=>x.classList.toggle('on',x.id==='s-'+t));
+  document.body.classList.toggle('pm',t==='print');
+  if(t==='print')drawPrint();
+  if(save){UI.tab=t;saveUI()}
+}
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.t));
+$('reset').onclick=()=>{const pr=S.print;S=norm(mk());S.print=pr;bind();bindPrint();drawSections();drawGroups();render();toast('Diseño restablecido')};
 
 /* ---------- Perfiles ---------- */
 const openModal=h=>{$('mBody').innerHTML=h;$('modal').hidden=false};
 const closeModal=()=>{$('modal').hidden=true};
 function refreshSel(){$('profSel').innerHTML=Object.keys(P.profiles).map(n=>`<option value="${esc(n)}"${n===P.current?' selected':''}>${esc(n)}</option>`).join('')}
-function setProfile(n){P.current=n;S=P.profiles[n];bind();drawSections();drawGroups();refreshSel();render();closeModal()}
+function setProfile(n){P.current=n;S=P.profiles[n];bind();bindPrint();drawSections();drawGroups();refreshSel();render();closeModal()}
 function create(name,cfg){
   name=name.trim();if(!name){toast('Escribe un nombre');return false}
   if(P.profiles[name]){toast('Ya existe un perfil con ese nombre');return false}
   P.profiles[name]=cfg||mk();setProfile(name);return true;
 }
+const KIND_HTML=`<div class="row"><label>Empezar desde</label><select id="mKind"><option value="tpl">Plantilla (por defecto)</option><option value="blank">Cero (sin grupos ni sorteos)</option></select></div>`;
 function showStart(){
-  const names=Object.keys(P.profiles);
+  const names=Object.keys(P.profiles);if(P.last&&names.includes(P.last))names.unshift(...names.splice(names.indexOf(P.last),1));
   openModal(`<h1>🎟️ Editor de Ticket</h1><p class="hint">Carga un perfil guardado o crea uno nuevo para empezar.</p>`+
-   (names.length?`<div class="card"><h2>Cargar perfil</h2>${names.map(n=>`<div class="item"><span class="nm">${esc(n)}</span><button class="p" data-load="${esc(n)}">Cargar</button></div>`).join('')}</div>`:'')+
-   `<div class="card"><h2>Nuevo perfil</h2><div class="row"><input type="text" id="mName" placeholder="Nombre del perfil…"><button class="p" id="mOk">Crear</button></div></div>`);
+   (names.length?`<div class="card"><h2>Cargar perfil</h2>${names.map(n=>`<div class="item"><span class="nm">${esc(n)}${n===P.last?' <span class="hint">★ último usado</span>':''}</span><button class="p" data-load="${esc(n)}">Cargar</button></div>`).join('')}</div>`:'')+
+   `<div class="card"><h2>Nuevo perfil</h2><div class="row"><input type="text" id="mName" placeholder="Nombre del perfil…"><button class="p" id="mOk">Crear</button></div>${KIND_HTML}</div>`);
   document.querySelectorAll('[data-load]').forEach(b=>b.onclick=()=>setProfile(b.dataset.load));
-  const go=()=>create($('mName').value);
+  const go=()=>create($('mName').value,newCfg($('mKind').value));
   $('mOk').onclick=go;$('mName').onkeydown=e=>{if(e.key==='Enter')go()};$('mName').focus();
 }
 function askName(title,def,cb){
@@ -416,7 +473,18 @@ function askName(title,def,cb){
 }
 $('profSel').onchange=e=>setProfile(e.target.value);
 $('pSave').onclick=()=>{saveP();toast('Perfil guardado')};
-$('pNew').onclick=()=>askName('Nuevo perfil','',n=>create(n));
+$('pNew').onclick=()=>{
+  openModal(`<h1>Nuevo perfil</h1><div class="row"><input type="text" id="mName" placeholder="Nombre del perfil…"></div>${KIND_HTML}<div class="hint">Plantilla: copia la plantilla actual (predeterminada o la que guardaste con ★). Cero: sin grupos ni sorteos.</div><div class="row"><button id="mCancel">Cancelar</button><button class="p" id="mOk">Crear</button></div>`);
+  const go=()=>create($('mName').value,newCfg($('mKind').value));
+  $('mOk').onclick=go;$('mCancel').onclick=closeModal;$('mName').onkeydown=e=>{if(e.key==='Enter')go()};$('mName').focus();
+};
+$('pTpl').onclick=()=>{
+  let custom=false;try{custom=!!localStorage.getItem('ticketTemplate')}catch(e){}
+  openModal(`<h1>Plantilla de perfiles nuevos</h1><p class="hint">Plantilla actual: <b>${custom?'personalizada':'predeterminada'}</b>. Se usa al crear perfiles con "Plantilla".</p><div class="row w"><button class="p" id="tSave">Usar "${esc(P.current||'')}" como plantilla</button><button id="tReset">Restablecer la predeterminada</button><button id="mCancel">Cerrar</button></div>`);
+  $('mCancel').onclick=closeModal;
+  $('tSave').onclick=()=>{try{localStorage.setItem('ticketTemplate',JSON.stringify(S));toast('Plantilla guardada')}catch(e){toast('No se pudo guardar la plantilla')}closeModal()};
+  $('tReset').onclick=()=>{try{localStorage.removeItem('ticketTemplate')}catch(e){}toast('Plantilla predeterminada restablecida');closeModal()};
+};
 $('pDup').onclick=()=>askName('Duplicar perfil',P.current+' (copia)',n=>create(n,norm(JSON.parse(JSON.stringify(S)))));
 $('pRen').onclick=()=>askName('Renombrar perfil',P.current,n=>{
   if(!n)return false;if(n===P.current)return true;
@@ -450,45 +518,43 @@ function toggleCode(show){const t=$('code'),b=$('showCode');if(show===undefined)
   else{t.style.display='none';b.textContent='Ver código SVG'}}
 $('showCode').onclick=()=>toggleCode();
 
-/* ---------- Imprimir (pestaña independiente; ajustes globales en localStorage 'ticketPrintCfg') ---------- */
+/* ---------- Imprimir (pestaña independiente; los ajustes se guardan dentro de cada perfil en S.print) ---------- */
 const PAPERS={letter:['Carta / Letter (216 × 279 mm)',215.9,279.4],legal:['Legal (216 × 356 mm)',215.9,355.6],oficio:['Oficio México (216 × 340 mm)',215.9,340.4],half:['Media carta / Statement (140 × 216 mm)',139.7,215.9],a4:['A4 (210 × 297 mm)',210,297],a5:['A5 (148 × 210 mm)',148,210],a3:['A3 (297 × 420 mm)',297,420],tabloid:['Tabloide / Ledger (279 × 432 mm)',279.4,431.8],custom:['Personalizado…',0,0]};
-const PR_DEF={paper:'letter',pw:210,ph:297,orient:'v',mode:'auto',tw:80,cols:2,rows:3,margin:10,gap:4,qty:0,cut:true};
-let PR=Object.assign({},PR_DEF);
-try{Object.assign(PR,JSON.parse(localStorage.getItem('ticketPrintCfg')||'{}'))}catch(e){}
-if(!PAPERS[PR.paper])PR.paper='letter';
-const savePR=()=>{try{localStorage.setItem('ticketPrintCfg',JSON.stringify(PR))}catch(e){}};
 const PX=96/25.4;
 function prLayout(){
-  let w=PAPERS[PR.paper][1],h=PAPERS[PR.paper][2];if(PR.paper==='custom'){w=PR.pw;h=PR.ph}
-  const lo=Math.min(w,h),hi=Math.max(w,h),W=PR.orient==='h'?hi:lo,H=PR.orient==='h'?lo:hi;
-  const m=Math.max(0,PR.margin),g=Math.max(0,PR.gap),uw=Math.max(1,W-2*m),uh=Math.max(1,H-2*m),E=1e-6;
+  const c=S.print,pp=PAPERS[c.paper]||PAPERS.letter;
+  let w=pp[1],h=pp[2];if(c.paper==='custom'){w=c.pw||210;h=c.ph||297}
+  const lo=Math.min(w,h),hi=Math.max(w,h),W=c.orient==='h'?hi:lo,H=c.orient==='h'?lo:hi;
+  /* márgenes y espacios independientes en cada eje, medidos sobre la hoja ya orientada */
+  const mx=Math.max(0,c.mx),my=Math.max(0,c.my),gx=Math.max(0,c.gx),gy=Math.max(0,c.gy);
+  const uw=Math.max(1,W-2*mx),uh=Math.max(1,H-2*my),E=1e-6;
   const vb=$('paper').viewBox.baseVal,asp=(vb.height/vb.width)||1.5;
   let cols,rows,tw,note='';
-  if(PR.mode==='man'){
-    cols=Math.max(1,Math.floor(PR.cols)||1);rows=Math.max(1,Math.floor(PR.rows)||1);
-    const cw=(uw-g*(cols-1))/cols,ch=(uh-g*(rows-1))/rows;
+  if(c.mode==='man'){
+    cols=Math.max(1,Math.floor(c.cols)||1);rows=Math.max(1,Math.floor(c.rows)||1);
+    const cw=(uw-gx*(cols-1))/cols,ch=(uh-gy*(rows-1))/rows;
     tw=Math.max(1,Math.min(cw,ch/asp));
   }else{
-    tw=Math.max(5,PR.tw||80);
-    if(tw>uw){tw=uw;note=' (reducido para caber en la hoja)'}
-    if(tw*asp>uh){tw=uh/asp;note=' (reducido para caber en la hoja)'}
+    tw=Math.max(5,c.tw||80);
+    if(tw>uw){tw=uw;note=' (reducido: no cabía a lo ancho)'}
+    if(tw*asp>uh){tw=uh/asp;note=' (reducido: no cabía a lo alto)'}
     const th=tw*asp;
-    cols=Math.max(1,Math.floor((uw+g)/(tw+g)+E));rows=Math.max(1,Math.floor((uh+g)/(th+g)+E));
+    cols=Math.max(1,Math.floor((uw+gx)/(tw+gx)+E));rows=Math.max(1,Math.floor((uh+gy)/(th+gy)+E));
   }
-  return {W,H,m,g,cols,rows,tw,th:tw*asp,note,per:cols*rows};
+  return {W,H,mx,my,gx,gy,cols,rows,tw,th:tw*asp,note,per:cols*rows};
 }
 function buildPages(maxPages,s){
-  const L=prLayout(),total=PR.qty>0?Math.floor(PR.qty):L.per,pages=Math.ceil(total/L.per);
+  const c=S.print,L=prLayout(),total=c.qty>0?Math.floor(c.qty):L.per,pages=Math.ceil(total/L.per);
   const box=$('printArea'),src=$('paper');box.innerHTML='';
   for(let p=0;p<Math.min(pages,maxPages);p++){
     const n=Math.min(L.per,total-p*L.per),pv=document.createElement('div'),sh=document.createElement('div');
     pv.className='pv';pv.style.width=L.W*PX*s+'px';pv.style.height=L.H*PX*s+'px';
     sh.className='sheet';
-    sh.style.cssText=`width:${L.W}mm;height:${L.H-0.5}mm;padding:${L.m}mm;gap:${L.g}mm;grid-template-columns:repeat(${L.cols},${L.tw}mm);grid-auto-rows:${L.th}mm;transform:scale(${s})`;
+    sh.style.cssText=`width:${L.W}mm;height:${L.H-0.5}mm;padding:${L.my}mm ${L.mx}mm;column-gap:${L.gx}mm;row-gap:${L.gy}mm;grid-template-columns:repeat(${L.cols},${L.tw}mm);grid-auto-rows:${L.th}mm;align-content:${c.align==='center'?'center':'start'};transform:scale(${s})`;
     for(let i=0;i<n;i++){
-      const c=src.cloneNode(true);c.removeAttribute('id');c.setAttribute('width',L.tw+'mm');c.setAttribute('height',L.th+'mm');
-      if(PR.cut){c.style.outline='.2mm dashed #888';c.style.outlineOffset=(L.g/2)+'mm'}
-      sh.appendChild(c);
+      const t=src.cloneNode(true);t.removeAttribute('id');t.setAttribute('width',L.tw+'mm');t.setAttribute('height',L.th+'mm');
+      if(c.cut){t.style.outline='.2mm dashed #888';t.style.outlineOffset=(Math.min(L.gx,L.gy)/2)+'mm'}
+      sh.appendChild(t);
     }
     pv.appendChild(sh);box.appendChild(pv);
   }
@@ -499,22 +565,26 @@ function drawPrint(){
   const L=prLayout();
   let st=$('pageStyle');if(!st){st=document.createElement('style');st.id='pageStyle';document.head.appendChild(st)}
   st.textContent=`@page{size:${L.W}mm ${L.H}mm;margin:0}`;
-  const avail=Math.max(200,document.querySelector('main').clientWidth-40),s=Math.min(1,avail/(L.W*PX));
-  const r=buildPages(3,s);
+  const avail=Math.max(200,document.querySelector('main').clientWidth-40),sc=Math.min(1,avail/(L.W*PX));
+  const r=buildPages(3,sc);
   $('prInfo').textContent=`${L.per} por hoja (${L.cols} × ${L.rows}) · ticket de ${L.tw.toFixed(1)} × ${L.th.toFixed(1)} mm${L.note} · ${r.total} ticket(s) en ${r.pages} hoja(s)`;
 }
 function bindPrint(){
+  const c=S.print;
   $('pr_paper').innerHTML=Object.entries(PAPERS).map(([k,v])=>`<option value="${k}">${v[0]}</option>`).join('');
-  const nums={pr_pw:'pw',pr_ph:'ph',pr_margin:'margin',pr_tw:'tw',pr_cols:'cols',pr_rows:'rows',pr_gap:'gap',pr_qty:'qty'};
-  const vis=()=>{$('pr_customRow').style.display=PR.paper==='custom'?'':'none';$('pr_autoRow').style.display=PR.mode==='auto'?'':'none';$('pr_manRow').style.display=PR.mode==='man'?'':'none'};
-  $('pr_paper').value=PR.paper;$('pr_orient').value=PR.orient;$('pr_mode').value=PR.mode;$('pr_cut').checked=!!PR.cut;
-  const upd=()=>{savePR();vis();drawPrint()};
-  $('pr_paper').onchange=e=>{PR.paper=e.target.value;upd()};
-  $('pr_orient').onchange=e=>{PR.orient=e.target.value;upd()};
-  $('pr_mode').onchange=e=>{PR.mode=e.target.value;upd()};
-  $('pr_cut').onchange=e=>{PR.cut=e.target.checked;upd()};
-  Object.entries(nums).forEach(([id,k])=>{const el=$(id);el.value=PR[k];el.oninput=()=>{const v=parseFloat(el.value);if(isNaN(v)||v<0)return;PR[k]=v;upd()}});
+  const nums={pr_pw:'pw',pr_ph:'ph',pr_mx:'mx',pr_my:'my',pr_tw:'tw',pr_cols:'cols',pr_rows:'rows',pr_gx:'gx',pr_gy:'gy',pr_qty:'qty'};
+  const vis=()=>{$('pr_customRow').style.display=c.paper==='custom'?'':'none';$('pr_autoRow').style.display=c.mode==='auto'?'':'none';$('pr_manRow').style.display=c.mode==='man'?'':'none'};
+  $('pr_paper').value=PAPERS[c.paper]?c.paper:'letter';$('pr_orient').value=c.orient;$('pr_mode').value=c.mode;$('pr_align').value=c.align;$('pr_cut').checked=!!c.cut;
+  const upd=()=>{saveP();vis();drawPrint()};
+  $('pr_paper').onchange=e=>{c.paper=e.target.value;upd()};
+  $('pr_orient').onchange=e=>{c.orient=e.target.value;upd()};
+  $('pr_mode').onchange=e=>{c.mode=e.target.value;upd()};
+  $('pr_align').onchange=e=>{c.align=e.target.value;upd()};
+  $('pr_cut').onchange=e=>{c.cut=e.target.checked;upd()};
+  Object.entries(nums).forEach(([id,k])=>{const el=$(id);el.value=c[k];el.oninput=()=>{const v=parseFloat(el.value);if(isNaN(v)||v<0)return;c[k]=v;upd()}});
   vis();
+}
+function initPrintEvents(){
   $('prPrint').onclick=$('prPrint2').onclick=()=>{drawPrint();window.print()};
   window.addEventListener('beforeprint',()=>{if(document.body.classList.contains('pm'))buildPages(Infinity,1)});
   window.addEventListener('afterprint',()=>{if(document.body.classList.contains('pm'))drawPrint()});
@@ -522,6 +592,6 @@ function bindPrint(){
 }
 
 /* ---------- Inicio: obligatorio elegir o crear perfil ---------- */
-bindPrint();bind();drawSections();drawGroups();render();refreshSel();showStart();
+initPrintEvents();bindPrint();bind();drawSections();drawGroups();render();refreshSel();showStart();applyUI();setTab(UI.tab,false);
 </script>
 </html>

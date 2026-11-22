@@ -33,7 +33,7 @@ Aplicación web de un solo archivo (`editor-ticket.html`) en HTML, CSS y JavaScr
   - ☑ / ☐ para marcar o desmarcar todos sus sorteos.
 - Los **grupos predeterminados** no se pueden **renombrar** (nombre bloqueado); sí puedes mostrarlos, ocultarlos, eliminarlos y marcar o agregar sus sorteos.
 - **Grupos:** se pueden eliminar con ✕ (pide confirmación), también los predeterminados. **↺ Restaurar grupos predeterminados** vuelve a agregar los que falten (ocultos). Ver las variables `ALLOW_DELETE_GROUPS` y `ALLOW_DELETE_ITEMS` más abajo.
-- **Sorteos dentro de un grupo:** por defecto **no se pueden eliminar** (sin botón ✕).
+- **Sorteos dentro de un grupo:** se pueden eliminar **uno por uno** con el ✕ de cada sorteo (variable `ALLOW_DELETE_ITEMS`).
 - Cada sorteo lleva su casilla en la misma línea. Se reparten en columnas según **Filas por columna**; con 16 sorteos y 8 filas salen 2 columnas.
 - Se puede reordenar arrastrando ⠿ (grupos y sorteos dentro de su grupo).
 
@@ -66,11 +66,11 @@ Justo debajo de `DEFAULT_GROUPS` hay dos variables:
 
 ```js
 const ALLOW_DELETE_GROUPS=true;   // true: se pueden eliminar grupos
-const ALLOW_DELETE_ITEMS=false;   // false: no se pueden eliminar sorteos dentro de los grupos
+const ALLOW_DELETE_ITEMS=true;    // true: se pueden eliminar sorteos uno por uno
 ```
 
 - `ALLOW_DELETE_GROUPS=true` (por defecto): aparece ✕ en cada grupo. Con `false` se muestra 🔒 en su lugar.
-- `ALLOW_DELETE_ITEMS=false` (por defecto): se oculta el ✕ de cada sorteo. Con `true` se pueden quitar.
+- `ALLOW_DELETE_ITEMS=true` (por defecto): aparece un ✕ en cada sorteo para quitarlo individualmente. Con `false` se oculta y los sorteos no se pueden eliminar.
 - Un grupo predeterminado eliminado **no reaparece** al recargar; se recupera con **↺ Restaurar grupos predeterminados**.
 - Se puede seguir agregando, renombrando, marcando, ocultando y reordenando. Esto no afecta la eliminación de **perfiles**.
 

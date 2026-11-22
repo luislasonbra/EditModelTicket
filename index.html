@@ -238,7 +238,7 @@ const DEFAULT_GROUPS=[
 /* ================================================================================== */
 /* Permisos de eliminación (ver README.md): */
 const ALLOW_DELETE_GROUPS=true;   // true: se pueden eliminar grupos (también los predeterminados; se pueden restaurar)
-const ALLOW_DELETE_ITEMS=false;   // false: no se pueden eliminar sorteos dentro de los grupos
+const ALLOW_DELETE_ITEMS=true;    // true: se pueden eliminar los sorteos de un grupo uno por uno (✕); false: no
 const PR_DEF={paper:'letter',pw:210,ph:297,orient:'v',mode:'auto',tw:80,cols:2,rows:3,mx:10,my:10,gx:4,gy:4,align:'top',qty:0,cut:true};
 let LEGACY_PR=null;try{LEGACY_PR=JSON.parse(localStorage.getItem('ticketPrintCfg')||'null')}catch(e){}
 function normPrint(p){
@@ -369,7 +369,7 @@ function addItems(g,text){
   return ok;
 }
 function drawGroups(){
-  $('grpHint').textContent='👁️ muestra u oculta un grupo completo; ☑ marca sus sorteos. '+(ALLOW_DELETE_GROUPS?'Puedes eliminar grupos con ✕ (los predeterminados se restauran con ↺). ':'Los grupos no se pueden eliminar (🔒). ')+(ALLOW_DELETE_ITEMS?'':'Los sorteos no se pueden eliminar. ')+'Los grupos predeterminados no se renombran. Arrastra ⠿ para reordenar.';
+  $('grpHint').textContent='👁️ muestra u oculta un grupo completo; ☑ marca sus sorteos. '+(ALLOW_DELETE_GROUPS?'Puedes eliminar grupos con ✕ (los predeterminados se restauran con ↺). ':'Los grupos no se pueden eliminar (🔒). ')+(ALLOW_DELETE_ITEMS?'Quita sorteos uno por uno con ✕. ':'Los sorteos no se pueden eliminar. ')+'Los grupos predeterminados no se renombran. Arrastra ⠿ para reordenar.';
   const box=$('groupList');box.innerHTML='';
   S.groups.forEach(g=>{
     const el=document.createElement('div');el.className='grp'+(g.show===false?' off':'');

@@ -115,6 +115,7 @@ body.pm #paper,body.pm .bar,body.pm #code{display:none!important}
       <div class="row"><label>Tamaño de letra</label><input type="range" id="rfont" min="8" max="20"><output></output></div>
       <div class="row"><label>Tamaño de casilla</label><input type="range" id="boxS" min="8" max="22"><output></output></div>
       <div class="row"><label>Margen interno</label><input type="range" id="rpad" min="2" max="24"><output></output></div>
+      <div class="row"><label>Espacio entre columnas</label><input type="range" id="colGap" min="0" max="60"><output></output></div>
       <div class="row"><label>Casilla a la derecha</label><input type="checkbox" id="boxRight"></div>
       <div class="hint" id="colInfo"></div>
     </div>
@@ -255,7 +256,7 @@ const defGroups=()=>DEFAULT_GROUPS.map(d=>mkG(d.name,d.items,true));
 const mk=()=>({
   order:['date','raffles','bets'],hidden:{},
   groups:defGroups(),
-  rows:8,rowH:17,rfont:14,boxS:12,rpad:10,boxRight:true,
+  rows:8,rowH:17,rfont:14,boxS:12,rpad:10,colGap:0,boxRight:true,
   bLeft:'APUESTA',bRight:'APUESTA',bLines:18,bLineH:21,bHead:28,bDiv:50,bFont:14,
   dLabel:'Fecha:',dFmt:'______ / _____ / ________',dH:31,dFont:20,
   pW:327,pM:13,pG:6,pR:6,pS:1,
@@ -313,9 +314,11 @@ function secDate(x,y,w){
 }
 function secRaffles(x,y,w){
   const list=selected(),n=list.length,rows=Math.max(1,Math.min(S.rows,n||1)),cols=Math.max(1,Math.ceil(n/rows));
-  const h=Math.max(rows*S.rowH+S.rpad*2,20),cw=w/cols;let s=box(x,y,w,h);
+  const h=Math.max(rows*S.rowH+S.rpad*2,20);
+  /* espacio entre columnas (colGap): se limita para que cada columna conserve espacio suficiente para texto y casilla */
+  const gap=cols>1?Math.max(0,Math.min(S.colGap||0,(w-cols*(S.boxS+40))/(cols-1))):0,cw=(w-gap*(cols-1))/cols;let s=box(x,y,w,h);
   list.forEach((r,i)=>{
-    const c=Math.floor(i/rows),k=i%rows,cx=x+c*cw,cy=y+S.rpad+k*S.rowH,mid=cy+S.rowH/2;
+    const c=Math.floor(i/rows),k=i%rows,cx=x+c*(cw+gap),cy=y+S.rpad+k*S.rowH,mid=cy+S.rowH/2;
     const bx=S.boxRight?cx+cw-S.boxS-8:cx+8,tx=S.boxRight?cx+10:cx+8+S.boxS+6;
     s+=`<text x="${tx}" y="${mid+S.rfont*.35}" font-size="${S.rfont}" font-family="Verdana,sans-serif" font-weight="700">${esc(r)}</text>`+
        `<rect x="${bx}" y="${mid-S.boxS/2}" width="${S.boxS}" height="${S.boxS}" rx="2" fill="#fff" stroke="#000"/>`;
@@ -436,7 +439,7 @@ $('addGroup').onclick=addGroup;
 $('restGroups').onclick=()=>{let n=0;DEFAULT_GROUPS.forEach(d=>{const k=d.name.trim().toLowerCase();if(!S.groups.some(g=>g.name.trim().toLowerCase()===k)){S.groups.push(mkG(d.name,d.items,true,false));n++}});S.dropped=[];drawGroups();render();toast(n?n+' grupo(s) restaurado(s), ocultos (actívalos con 👁️)':'No hay grupos predeterminados por restaurar')};
 $('newGroup').onkeydown=e=>{if(e.key==='Enter')addGroup()};
 
-const BIND=['rows','rowH','rfont','boxS','rpad','boxRight','bLeft','bRight','bLines','bLineH','bHead','bDiv','bFont','dLabel','dFmt','dH','dFont','pW','pM','pG','pR','pS'];
+const BIND=['rows','rowH','rfont','boxS','rpad','colGap','boxRight','bLeft','bRight','bLines','bLineH','bHead','bDiv','bFont','dLabel','dFmt','dH','dFont','pW','pM','pG','pR','pS'];
 function bind(){
   BIND.forEach(k=>{
     const el=$(k),out=el.parentNode.querySelector('output');

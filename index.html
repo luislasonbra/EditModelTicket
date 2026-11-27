@@ -256,7 +256,7 @@ const mk=()=>({
   order:['date','raffles','bets'],hidden:{},
   groups:defGroups(),
   rows:8,rowH:17,rfont:14,boxS:12,rpad:10,boxRight:true,
-  bLeft:'APUESTA',bRight:'CANTIDAD',bLines:18,bLineH:21,bHead:28,bDiv:63,bFont:14,
+  bLeft:'APUESTA',bRight:'APUESTA',bLines:18,bLineH:21,bHead:28,bDiv:50,bFont:14,
   dLabel:'Fecha:',dFmt:'______ / _____ / ________',dH:31,dFont:20,
   pW:327,pM:13,pG:6,pR:6,pS:1,
   dropped:[],
@@ -275,15 +275,30 @@ function getTemplate(){try{const t=localStorage.getItem('ticketTemplate');if(t)r
 const clone=o=>JSON.parse(JSON.stringify(o));
 const newCfg=kind=>kind==='blank'?norm(mkBlank()):clone(getTemplate());
 const NAMES={date:'Fecha',raffles:'Sorteos',bets:'Apuestas'};
-let P={profiles:{},current:null},S=mk();
-try{const t=JSON.parse(localStorage.getItem('ticketProfiles')||'{}');if(t.profiles)P.profiles=t.profiles;if(t.last)P.last=t.last}catch(e){}
+let P={profiles:{},current:null,seeded:[]},S=mk();
+try{const t=JSON.parse(localStorage.getItem('ticketProfiles')||'{}');if(t.profiles)P.profiles=t.profiles;if(t.last)P.last=t.last;if(Array.isArray(t.seeded))P.seeded=t.seeded}catch(e){}
 try{const o=localStorage.getItem('ticketCfg');if(o&&!Object.keys(P.profiles).length)P.profiles['Anterior']=JSON.parse(o)}catch(e){}
 Object.keys(P.profiles).forEach(n=>P.profiles[n]=norm(P.profiles[n]));
+/* PERFILES PREDETERMINADOS: se crean una sola vez por navegador, con solo los grupos/sorteos indicados.
+   Si luego los eliminas no vuelven a aparecer. Agrega más objetos {name, groups:[{name, items:[...]}]} si lo necesitas. */
+const DEFAULT_PROFILES=[
+  {name:'prueba',groups:[{name:'New York',items:['NYS']}]}
+];
+(function(){let ch=false;
+  DEFAULT_PROFILES.forEach(d=>{
+    if(P.seeded.includes(d.name))return;
+    P.seeded.push(d.name);ch=true;
+    if(P.profiles[d.name])return;
+    const o=mkBlank();o.groups=d.groups.map(g=>mkG(g.name,g.items,false,true));
+    P.profiles[d.name]=norm(o);
+  });
+  if(ch)try{localStorage.setItem('ticketProfiles',JSON.stringify({profiles:P.profiles,last:P.last||null,seeded:P.seeded}))}catch(e){}
+})();
 
 function toast(t){const e=$('toast');e.textContent=t;e.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.opacity=0,2000)}
 function saveP(){
   if(P.current)P.profiles[P.current]=S;
-  try{if(P.current)P.last=P.current;localStorage.setItem('ticketProfiles',JSON.stringify({profiles:P.profiles,last:P.last||null}))}catch(e){}
+  try{if(P.current)P.last=P.current;localStorage.setItem('ticketProfiles',JSON.stringify({profiles:P.profiles,last:P.last||null,seeded:P.seeded}))}catch(e){}
   $('pStat').textContent=P.current?'✔ Guardado · '+new Date().toLocaleTimeString():'';
 }
 const selected=()=>{const seen=new Set(),out=[];S.groups.forEach(g=>g.show!==false&&g.items.forEach(i=>{const k=i.name.trim().toLowerCase();if(i.on&&k&&!seen.has(k)){seen.add(k);out.push(i.name)}}));return out};

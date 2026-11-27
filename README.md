@@ -14,6 +14,12 @@ Aplicación web de un solo archivo (`editor-ticket.html`) en HTML, CSS y JavaScr
 - Desde el panel **Perfil**: cambiar de perfil, **Nuevo**, **Duplicar**, **Renombrar**, **Eliminar**, **JSON** y **★ Plantilla**.
 - **JSON** exporta el perfil como texto (para respaldo; incluye la configuración de impresión) e importa un JSON pegado como perfil nuevo.
 
+### Perfil predeterminado "prueba"
+- La primera vez que se abre la página en un navegador se crea automáticamente el perfil **prueba**, con un solo grupo (**New York**) y un solo sorteo (**NYS**), marcado.
+- Se crea **una sola vez**: si lo eliminas, no vuelve a aparecer. Si ya tenías un perfil con ese nombre, no se toca.
+- Para usarlo como base de los perfiles nuevos, cárgalo y pulsa **★ Plantilla → Usar como plantilla**.
+- Se define en el código, en la constante `DEFAULT_PROFILES` (junto a la carga de perfiles); ahí puedes agregar más perfiles predeterminados con `{name:'...',groups:[{name:'...',items:['...']}]}`.
+
 ### Posición y tamaño del panel
 - El botón de la esquina superior del panel (**Derecha ➡ / ⬅ Izquierda**) mueve el panel de herramientas a un lado u otro.
 - Arrastra la barra divisoria entre el panel y el ticket para **cambiar el ancho del panel** (doble clic: vuelve a 380 px; también funciona con las flechas ← → al enfocar la barra). Mínimo 260 px.
@@ -38,7 +44,7 @@ Aplicación web de un solo archivo (`editor-ticket.html`) en HTML, CSS y JavaScr
 - Se puede reordenar arrastrando ⠿ (grupos y sorteos dentro de su grupo).
 
 ### Apuestas, Fecha y Papel
-- **Apuestas:** títulos, número de líneas, alto de línea y de encabezado, posición del divisor y tamaño de letra.
+- **Apuestas:** títulos, número de líneas, alto de línea y de encabezado, posición del divisor y tamaño de letra. En la plantilla predeterminada las dos columnas se llaman **APUESTA** y el divisor está al **50 %** (cada columna ocupa la mitad). Esto solo afecta a perfiles nuevos creados desde la plantilla predeterminada; los perfiles existentes y las plantillas personalizadas (★) conservan sus valores.
 - **Fecha:** etiqueta, formato, alto y tamaño de letra.
 - **Papel:** ancho, margen, espacio entre secciones, radio de esquinas y grosor de borde.
 
@@ -104,7 +110,7 @@ const DEFAULT_GROUPS=[
 
 ## Datos guardados
 Todo vive en `localStorage`, solo en ese navegador:
-- `ticketProfiles`: perfiles (diseño, grupos, sorteos, ajustes de impresión) y último perfil usado.
+- `ticketProfiles`: perfiles (diseño, grupos, sorteos, ajustes de impresión), último perfil usado y cuáles perfiles predeterminados ya se crearon.
 - `ticketTemplate`: plantilla personalizada para perfiles nuevos (opcional).
 - `ticketUI`: lado y ancho del panel y pestaña activa.
 

@@ -115,7 +115,7 @@ body.pm #paper,body.pm .bar,body.pm #code{display:none!important}
       <div class="row"><label>Tamaño de letra</label><input type="range" id="rfont" min="8" max="20"><output></output></div>
       <div class="row"><label>Tamaño de casilla</label><input type="range" id="boxS" min="8" max="22"><output></output></div>
       <div class="row"><label>Margen interno</label><input type="range" id="rpad" min="2" max="24"><output></output></div>
-      <div class="row"><label>Espacio entre columnas</label><input type="range" id="colGap" min="0" max="60"><output></output></div>
+      <div class="row"><label>Espacio entre columnas (0 = pegadas)</label><input type="range" id="colGap" min="0" max="100"><output></output></div>
       <div class="row"><label>Casilla a la derecha</label><input type="checkbox" id="boxRight"></div>
       <div class="hint" id="colInfo"></div>
     </div>
@@ -312,14 +312,21 @@ function secDate(x,y,w){
    `<text x="${x+14}" y="${y+h/2+S.dFont*.35}" font-size="${S.dFont}" font-family="Impact">${esc(S.dLabel)}</text>`+
    `<text x="${x+14+S.dFont*3.5}" y="${y+h/2+S.dFont*.35}" font-size="${S.dFont}" font-family="Segoe UI,sans-serif">${esc(S.dFmt)}</text>`};
 }
+const _mctx=document.createElement('canvas').getContext('2d');
+function textW(t,fs){try{_mctx.font=`700 ${fs}px Verdana,sans-serif`;return _mctx.measureText(t).width}catch(e){return t.length*fs*.72}}
 function secRaffles(x,y,w){
   const list=selected(),n=list.length,rows=Math.max(1,Math.min(S.rows,n||1)),cols=Math.max(1,Math.ceil(n/rows));
   const h=Math.max(rows*S.rowH+S.rpad*2,20);
-  /* espacio entre columnas (colGap): se limita para que cada columna conserve espacio suficiente para texto y casilla */
-  const gap=cols>1?Math.max(0,Math.min(S.colGap||0,(w-cols*(S.boxS+40))/(cols-1))):0,cw=(w-gap*(cols-1))/cols;let s=box(x,y,w,h);
+  /* Cada columna mide lo que ocupa su contenido (texto + casilla), así quedan pegadas; colGap las separa.
+     Si no caben, se reduce el espacio y, en último caso, se encogen las columnas para entrar en el ancho. */
+  const cw=[];for(let c=0;c<cols;c++){const tw=Math.max(0,...list.slice(c*rows,(c+1)*rows).map(r=>textW(r,S.rfont)));cw.push(S.boxRight?10+tw+10+S.boxS+8:8+S.boxS+6+tw+10)}
+  const sum=cw.reduce((a,b)=>a+b,0);let gap=Math.max(0,S.colGap||0);
+  if(cols>1&&sum+gap*(cols-1)>w)gap=Math.max(0,(w-sum)/(cols-1));else if(cols===1)gap=0;
+  if(sum+gap*(cols-1)>w){const f=w/(sum+gap*(cols-1));for(let c=0;c<cols;c++)cw[c]*=f;gap*=f}
+  let s=box(x,y,w,h),off=0;const pos=cw.map(v=>{const p=x+off;off+=v+gap;return p});
   list.forEach((r,i)=>{
-    const c=Math.floor(i/rows),k=i%rows,cx=x+c*(cw+gap),cy=y+S.rpad+k*S.rowH,mid=cy+S.rowH/2;
-    const bx=S.boxRight?cx+cw-S.boxS-8:cx+8,tx=S.boxRight?cx+10:cx+8+S.boxS+6;
+    const c=Math.floor(i/rows),k=i%rows,cx=pos[c],cy=y+S.rpad+k*S.rowH,mid=cy+S.rowH/2;
+    const bx=S.boxRight?cx+cw[c]-S.boxS-8:cx+8,tx=S.boxRight?cx+10:cx+8+S.boxS+6;
     s+=`<text x="${tx}" y="${mid+S.rfont*.35}" font-size="${S.rfont}" font-family="Verdana,sans-serif" font-weight="700">${esc(r)}</text>`+
        `<rect x="${bx}" y="${mid-S.boxS/2}" width="${S.boxS}" height="${S.boxS}" rx="2" fill="#fff" stroke="#000"/>`;
   });

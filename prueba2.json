@@ -1,0 +1,205 @@
+{
+ "order": [
+  "date",
+  "raffles",
+  "bets"
+ ],
+ "hidden": {
+  "date": false
+ },
+ "groups": [
+  {
+   "id": "g421rt",
+   "name": "New York",
+   "open": true,
+   "show": true,
+   "fixed": true,
+   "items": [
+    {
+     "id": "yelwwo",
+     "name": "NYS",
+     "on": true
+    },
+    {
+     "id": "rr46bv",
+     "name": "NY DIA",
+     "on": true
+    },
+    {
+     "id": "wpde4l",
+     "name": "NY NOCHE",
+     "on": true
+    }
+   ]
+  },
+  {
+   "id": "iwp52g",
+   "name": "Anguilla",
+   "open": true,
+   "show": true,
+   "fixed": false,
+   "items": [
+    {
+     "id": "e20dxw",
+     "name": "ANG 11AM",
+     "on": true
+    },
+    {
+     "id": "q0krn7",
+     "name": "ANG 12PM",
+     "on": true
+    },
+    {
+     "id": "1izdb1",
+     "name": "ANG 2PM",
+     "on": true
+    },
+    {
+     "id": "o2cik4",
+     "name": "ANG 4PM",
+     "on": true
+    },
+    {
+     "id": "d6lr8y",
+     "name": "ANG 7PM",
+     "on": true
+    },
+    {
+     "id": "nxdzd5",
+     "name": "ANG 8PM",
+     "on": true
+    },
+    {
+     "id": "80q1gr",
+     "name": "ANG 10PM",
+     "on": true
+    }
+   ]
+  },
+  {
+   "id": "xgidsy",
+   "name": "Super Pale",
+   "open": true,
+   "show": true,
+   "fixed": false,
+   "items": [
+    {
+     "id": "bo3c2r",
+     "name": "NAAM/REAL",
+     "on": true
+    },
+    {
+     "id": "j49486",
+     "name": "NAPM/LEI",
+     "on": true
+    }
+   ]
+  },
+  {
+   "id": "caeyml",
+   "name": "Florida",
+   "open": true,
+   "show": true,
+   "fixed": true,
+   "items": [
+    {
+     "id": "2jaoam",
+     "name": "CUBANA DIA",
+     "on": true
+    },
+    {
+     "id": "sz6p1w",
+     "name": "CUBANA NOC",
+     "on": true
+    }
+   ]
+  },
+  {
+   "id": "5lt5u8",
+   "name": "Loteka",
+   "open": true,
+   "show": true,
+   "fixed": false,
+   "items": [
+    {
+     "id": "b3hgcy",
+     "name": "LTKA 1:30",
+     "on": true
+    }
+   ]
+  },
+  {
+   "id": "twz7xq",
+   "name": "Real",
+   "open": true,
+   "show": true,
+   "fixed": false,
+   "items": [
+    {
+     "id": "xcoy18",
+     "name": "REAL NOCHE",
+     "on": true
+    }
+   ]
+  },
+  {
+   "id": "fdm7j3",
+   "name": "LoteDom",
+   "open": true,
+   "show": true,
+   "fixed": false,
+   "items": [
+    {
+     "id": "v152bu",
+     "name": "LotDom Noc",
+     "on": true
+    }
+   ]
+  }
+ ],
+ "rows": 8,
+ "rowH": 17,
+ "rfont": 9,
+ "boxS": 12,
+ "rpad": 8,
+ "boxRight": true,
+ "bLeft": "APUESTA",
+ "bRight": "APUESTA",
+ "bLines": 18,
+ "bLineH": 26,
+ "bHead": 28,
+ "bDiv": 50,
+ "bFont": 14,
+ "dLabel": "Fecha:",
+ "dFmt": "______ / _____ / ________",
+ "dH": 31,
+ "dFont": 20,
+ "pW": 327,
+ "pM": 13,
+ "pG": 6,
+ "pR": 6,
+ "pS": 1,
+ "dropped": [
+  "new jersey",
+  "connecticut",
+  "pennsylvania",
+  "georgia"
+ ],
+ "print": {
+  "paper": "letter",
+  "pw": 210,
+  "ph": 297,
+  "orient": "h",
+  "mode": "auto",
+  "tw": 80,
+  "cols": 2,
+  "rows": 3,
+  "mx": 10,
+  "my": 10,
+  "gx": 4,
+  "gy": 4,
+  "align": "center",
+  "qty": 0,
+  "cut": true
+ }
+}

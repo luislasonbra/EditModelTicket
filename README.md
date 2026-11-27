@@ -40,7 +40,7 @@ Aplicación web de un solo archivo (`editor-ticket.html`) en HTML, CSS y JavaScr
 - Los **grupos predeterminados** no se pueden **renombrar** (nombre bloqueado); sí puedes mostrarlos, ocultarlos, eliminarlos y marcar o agregar sus sorteos.
 - **Grupos:** se pueden eliminar con ✕ (pide confirmación), también los predeterminados. **↺ Restaurar grupos predeterminados** vuelve a agregar los que falten (ocultos). Ver las variables `ALLOW_DELETE_GROUPS` y `ALLOW_DELETE_ITEMS` más abajo.
 - **Sorteos dentro de un grupo:** se pueden eliminar **uno por uno** con el ✕ de cada sorteo (variable `ALLOW_DELETE_ITEMS`).
-- **Espacio entre columnas:** cada columna de sorteos ocupa solo lo que necesita su contenido (texto + casilla), así que con el slider en **0 las columnas quedan pegadas** (alineadas a la izquierda del rectángulo) y al subirlo se separan según el valor (0–100). Si no caben en el ancho del ticket, el espacio se reduce solo.
+- **Espacio entre columnas (%):** cada columna de sorteos ocupa solo lo que necesita su contenido (texto + casilla). Con el slider en **0** quedan pegadas (alineadas a la izquierda del rectángulo); al subirlo se separan de forma proporcional hasta **100**, que las reparte hasta los bordes. Como es un porcentaje del espacio libre, el slider tiene efecto en todo su recorrido. Si no queda espacio libre (letra o casilla muy grandes para el ancho del papel), el panel lo avisa.
 - Cada sorteo lleva su casilla en la misma línea. Se reparten en columnas según **Filas por columna**; con 16 sorteos y 8 filas salen 2 columnas.
 - Se puede reordenar arrastrando ⠿ (grupos y sorteos dentro de su grupo).
 
